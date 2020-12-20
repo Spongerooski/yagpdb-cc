@@ -1,0 +1,47 @@
+{{/* recommended trigger : regex          trigger : \A-r(?:ock)?p(?:aper)?s(?:scissors)?   */}}
+
+{{/* you can change the rock paper and scissors emojis to the ones you want */}}
+{{$rockemoji := "🪨"}}{{/* emoji that you would like to use for rock */}}
+{{$paperemoji := "🧻"}}{{/* emoji that you would like to use for paper */}}
+{{$scissorsemoji := "✂️"}}{{/* emoji that you would like to use for scissors */}}
+{{$winningmessage := "🙂 you won!"}}{{/* message when the person wins */}}
+{{$losingmessage := "😦 you lost"}}{{/* message when the person loses */}}
+{{$tiemessage := "😐 there was a tie"}}{{/* message when the match is tied */}}
+{{$color := (randInt 1 999999)}}{{/* color for the embed */}}
+
+{{/* ACTUAL CODE */}}
+{{if $matches := reFindAllSubmatches `(rock|paper|scissors)` .StrippedMsg}}
+{{$player := ""}}
+{{if eq (index $matches 0 1) "rock"}}
+{{$player = $rockemoji}}
+{{else if eq (index $matches 0 1) "paper"}}
+{{$player = $paperemoji}}
+{{else if eq (index $matches 0 1) "scissors"}}
+{{$player = $scissorsemoji}}
+{{end}}
+{{$win := false}}
+{{$the := cslice $scissorsemoji $paperemoji $scissorsemoji $rockemoji $paperemoji $rockemoji}}
+{{$pick := (index $the (randInt (len $the)))}}
+{{if and (eq $player $scissorsemoji) (eq $pick $paperemoji)}}
+{{$win = true}}
+{{else if and (eq $player $rockemoji) (eq $pick $scissorsemoji)}}
+{{$win = true}}
+{{else if and (eq $player $paperemoji) (eq $pick $rockemoji)}}
+{{$win = true}}
+{{else if eq $player $pick}}
+{{$win = false}}
+{{end}}
+{{$embed := (sdict "footer" (sdict "text" (print "RPS Match for " .User.Username)) "description" (print "\nyou chose " $player "\nbot chose " $pick) "color" $color)}}
+{{if $win}}
+{{$embed.Set "title" $winningmessage}}
+{{else}}
+{{if eq $player $pick}}
+{{$embed.Set "title" $tiemessage}}
+{{else if not (eq $player $pick)}}
+{{$embed.Set "title" $losingmessage}}
+{{end}}
+{{end}}
+{{sendMessage nil (cembed $embed)}}
+{{else}}
+usage : `-rps rock/paper/scissors`
+{{end}}
