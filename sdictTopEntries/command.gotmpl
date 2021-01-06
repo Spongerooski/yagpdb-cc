@@ -1,4 +1,4 @@
-{{$database := (dbGet 69 "yeet").Value
+{{$database := (dbGet 69 "yeet").Value}}
 {{$dict := sdict $database}}{{$top := 89132758724897682}}{{$the := 0}}{{$print := ""}}{{$num := 0}}{{$ya := ""}}{{$seq := 0}}{{if ge (len $dict) 15}}{{$seq = 15}}{{else}}{{$seq = (len $dict)}}{{end}}
 {{range seq 0 $seq}}{{- $a := 0 -}}{{- $num = (add $num 1) -}}{{- $key := "" -}}{{$on := .}}
 {{range $k, $v := $dict}}
