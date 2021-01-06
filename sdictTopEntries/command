@@ -1,0 +1,10 @@
+{{$dict := sdict (dbGet 55 "pets").Value}}{{$top := 89132758724897682}}{{$the := 0}}{{$print := ""}}{{$num := 0}}{{$ya := ""}}{{$seq := 0}}{{if ge (len $dict) 15}}{{$seq = 15}}{{else}}{{$seq = (len $dict)}}{{end}}
+{{range seq 0 $seq}}{{- $a := 0 -}}{{- $num = (add $num 1) -}}{{- $key := "" -}}{{$on := .}}
+{{range $k, $v := $dict}}
+{{- if and (ge (toInt $v)  $the) (le (toInt $v) $top) (ge (toInt $v) $a) (not (in (split $print "**") (title $k))) -}}
+{{- $key = $k -}}{{- $a = (toInt $v) -}}
+{{- end -}}
+{{- end -}}{{- $top = ($dict.Get $key|toInt) -}}{{- $print =print $print "**" $num ".**" (title $key) "**-**" ($dict.Get $key) "\n" -}}{{- $ya = $key -}}
+{{- end -}}
+{{$id := sendMessageRetID nil (cembed "title" "top" "description" $print "footer" (sdict "text" "page 1"))}}
+{{addMessageReactions nil $id "◀️" "▶️"}}
