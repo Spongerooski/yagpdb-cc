@@ -1,3 +1,4 @@
+{{$database := (dbGet 69 "yeet").Value}}
 {{if and .ReactionAdded .Message.Embeds}}{{$on := 0}}
 {{$embed := structToSdict (index .Message.Embeds 0)}}
 {{$pgfind := reFindAllSubmatches `page (\d+)` $embed.Footer.Text}}
@@ -9,7 +10,7 @@
 {{$page = (add $page 1)}}
 {{deleteMessageReaction nil .Message.ID .User.ID "▶️"}}
 {{end}}
-{{$dict := sdict (dbGet 55 "pets").Value}}{{$top := 89132758724897682}}{{$the := 0}}{{$print := ""}}{{$num := 0}}{{$ya := ""}}{{$seq := 0}}{{if eq $page 1}}{{if ge (len $dict) 15}}{{$seq = 15}}{{else}}{{$seq = (len $dict)}}{{end}}{{else}}{{$seq = (mult $page 15)}}{{end}}
+{{$dict := sdict $database}}{{$top := 89132758724897682}}{{$the := 0}}{{$print := ""}}{{$num := 0}}{{$ya := ""}}{{$seq := 0}}{{if eq $page 1}}{{if ge (len $dict) 15}}{{$seq = 15}}{{else}}{{$seq = (len $dict)}}{{end}}{{else}}{{$seq = (mult $page 15)}}{{end}}
 {{if and (not (eq $page 0)) (ge (len $dict) $seq)}}
 {{range seq 0 $seq}}{{- $a := 0 -}}{{- $num = (add $num 1) -}}{{- $key := "" -}}{{$on = .}}
 {{range $k, $v := $dict}}
