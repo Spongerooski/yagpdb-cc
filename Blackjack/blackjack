@@ -68,10 +68,10 @@
 {{$pl := $db.Playerhand}}{{$dl := $db.Dealerhand}}
 {{$embed.Fields.Set 0 (sdict "name" "Your hand" "value" (print $db.Playercards "\nValue:" $db.Playerhand) "inline" true)}}
 {{$embed.Fields.Set 1 (sdict "name" "Dealer hand" "value" (print $db.Dealeractual "\nValue:" $db.Dealerhand) "inline" true)}}
-{{if gt $pl $dl}}
+{{if lt $pl $dl}}
 {{$embed.Set "description" (print "playerbust:" $db.Bet)}}
 {{$embed.Set "color" $red}}
-{{else if gt $dl $pl}}
+{{else if lt $dl $pl}}
 {{$embed.Set "description" (print "dealerbust:" $db.Bet)}}
 {{$embed.Set "color" $green}}
 {{else if eq $dl $pl}}
