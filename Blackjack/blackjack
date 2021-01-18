@@ -75,7 +75,7 @@
 {{$embed.Set "description" (print "dealerbust:" $db.Bet)}}
 {{$embed.Set "color" $green}}
 {{else if eq $dl $pl}}
-{{$embed.Set "description" (print "puch money back:" $db.Bet)}}
+{{$embed.Set "description" (print "push money back:" $db.Bet)}}
 {{$embed.Set "color" $yellow}}
 {{end}}{{$stick := sdict $db.Sticky}}{{dbDel .User.ID "bj"}}
 {{editMessage ($stick.Channel|toInt) ($stick.Message|toInt) (cembed $embed)}}
