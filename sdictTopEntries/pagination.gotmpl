@@ -1,24 +1,49 @@
 {{$database := (dbGet 69 "yeet").Value}}
-{{if and .ReactionAdded .Message.Embeds}}{{$on := 0}}
-{{$embed := structToSdict (index .Message.Embeds 0)}}
-{{$pgfind := reFindAllSubmatches `page (\d+)` $embed.Footer.Text}}
-{{$page := (toInt (index $pgfind 0 1))}}
-{{if eq .Reaction.Emoji.Name "◀️"}}
-{{$page = (sub $page 1)}}
-{{deleteMessageReaction nil .Message.ID .User.ID "◀️"}}
-{{else if eq .Reaction.Emoji.Name "▶️"}}
-{{$page = (add $page 1)}}
-{{deleteMessageReaction nil .Message.ID .User.ID "▶️"}}
+
+{{if and .ReactionAdded .Message.Embeds}}
+	{{$on := 0}}
+	{{$embed := structToSdict (index .Message.Embeds 0)}}
+	{{$pgfind := reFindAllSubmatches `page (\d+)` $embed.Footer.Text}}
+	{{$page := (toInt (index $pgfind 0 1))}}
+	{{if eq .Reaction.Emoji.Name "◀️"}}
+		{{$page = (sub $page 1)}}
+		{{deleteMessageReaction nil .Message.ID .User.ID "◀️"}}
+	{{else if eq .Reaction.Emoji.Name "▶️"}}
+		{{$page = (add $page 1)}}
+		{{deleteMessageReaction nil .Message.ID .User.ID "▶️"}}
+	{{end}}
+	{{$dict := sdict $database}}
+	{{$top := 89132758724897682}}
+	{{$the := 0}}
+	{{$print := ""}}
+	{{$num := 0}}
+	{{$ya := ""}}
+	{{$seq := 0}}
+	{{if eq $page 1}}
+		{{if ge (len $dict) 15}}
+			{{$seq = 15}}
+		{{else}}
+			{{$seq = (len $dict)}}
+		{{end}}
+	{{else}}
+		{{$seq = (mult $page 15)}}
+	{{end}}
+	{{if and (not (eq $page 0)) (ge (len $dict) $seq)}}
+		{{range seq 0 $seq}}
+			{{- $a := 0 -}}
+			{{- $num = (add $num 1) -}}
+			{{- $key := "" -}}
+			{{$on = .}}
+			{{range $k, $v := $dict}}
+				{{- if and (ge (toInt $v)  $the) (le (toInt $v) $top) (ge (toInt $v) $a) (not (in (split $print "**") (title $k))) -}}
+					{{- $key = $k -}}{{- $a = (toInt $v) -}}
+				{{- end -}}
+			{{- end -}}
+			{{- $top = ($dict.Get $key|toInt) -}}
+			{{- $print =print $print "**" $num ".**" (title $key) "**-**" ($dict.Get $key) "\n" -}}
+		{{- end -}}
+		{{$math := (sub (mult $page 15) 15)}}
+		{{$am := (slice (split $print "\n") $math)}}
+		{{editMessage nil .Message.ID (cembed "title" "top" "description" (joinStr "\n" $am) "footer" (sdict "text" (print "page " $page)))}}
+	{{end}}
 {{end}}
-{{$dict := sdict $database}}{{$top := 89132758724897682}}{{$the := 0}}{{$print := ""}}{{$num := 0}}{{$ya := ""}}{{$seq := 0}}{{if eq $page 1}}{{if ge (len $dict) 15}}{{$seq = 15}}{{else}}{{$seq = (len $dict)}}{{end}}{{else}}{{$seq = (mult $page 15)}}{{end}}
-{{if and (not (eq $page 0)) (ge (len $dict) $seq)}}
-{{range seq 0 $seq}}{{- $a := 0 -}}{{- $num = (add $num 1) -}}{{- $key := "" -}}{{$on = .}}
-{{range $k, $v := $dict}}
-{{- if and (ge (toInt $v)  $the) (le (toInt $v) $top) (ge (toInt $v) $a) (not (in (split $print "**") (title $k))) -}}
-{{- $key = $k -}}{{- $a = (toInt $v) -}}
-{{- end -}}
-{{- end -}}{{- $top = ($dict.Get $key|toInt) -}}{{- $print =print $print "**" $num ".**" (title $key) "**-**" ($dict.Get $key) "\n" -}}
-{{- end -}}{{$math := (sub (mult $page 15) 15)}}
-{{$am := (slice (split $print "\n") $math)}}
-{{editMessage nil .Message.ID (cembed "title" "top" "description" (joinStr "\n" $am) "footer" (sdict "text" (print "page " $page)))}}
-{{end}}{{end}}
