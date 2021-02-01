@@ -19,6 +19,7 @@
 {{$sum1 := (add ($cards.Get $pick1.Pick) ($cards.Get $pick2.Pick))}}
 {{$sum2 := (add ($cards.Get $pick3.Pick) ($cards.Get $pick4.Pick))}}
 {{$bust := (index $find 0 1)}}
+{{$won := true}}
 {{$embed := (sdict "color" 0x00d5ff "title" "blackjack"
 "fields" (cslice (sdict "name" "Your hand" "value" (print $pick1.Pick $pick2.Pick "\nValue: " $sum1) "inline" true)
 (sdict "name" "Dealer hand" "value" (print $blank $pick4.Pick "\nValue:" ($cards.Get $pick4.Pick)) "inline" true)))}}
@@ -27,7 +28,8 @@
 {{else if and (eq $sum2 21) (eq $sum1 21)}}{{$embed.Set "description" (print "push money back:" $bust)}}{{$embed.Set "color" $yellow}}
 {{else if and (ge $sum2 21) (ge $sum1 21)}}{{$embed.Set "description" (print "push mobey back:" $bust)}}{{$embed.Set "color" $yellow}}
 {{else if eq $sum1 21}}{{$embed.Set "description" (print "player blackjack:" $bust)}}{{$embed.Set "color" $green}}
-{{else if eq $sum2 21}}{{$embed.Set "description" (print "dealer blacjkack:" $bust)}}{{$embed.Set "color" $red}}{{end}}
+{{else if eq $sum2 21}}{{$embed.Set "description" (print "dealer blacjkack:" $bust)}}{{$embed.Set "color" $red}}{{else}}{{$won = false}}{{end}}
+{{if $won}}{{$embed.fields.Set 1 (sdict "name" "Dealer hand" "value" (print $pick3.Pick $pick4.Pick "\nValue:" $sum2) "inline" true)}}{{end}}
 {{$id := sendMessageRetID nil (cembed $embed)}}
 {{$toset := sdict "Playercards" (print $pick1.Pick $pick2.Pick) "Dealercards" (print $blank $pick4.Pick) "Dealeractual" (print $pick3.Pick $pick4.Pick) "Bet" (index $find 0 1) "Dealerfake" ($cards.Get $pick4.Pick) "Hidden" $pick3.Pick "Playerhand" $sum1 "Dealerhand" $sum2 "Sticky" (sdict "Channel" (str .Channel.ID) "Message" (str $id))}}
 {{dbSet .User.ID "bj" $toset}}
