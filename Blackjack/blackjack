@@ -1,6 +1,6 @@
 {{/* 
     Trigger Type: regex
-    Trigger: \A(?i)(-b(?:lack)?j(?:ack)? ?(\d+)|hit|stand)\z 
+    Trigger: \A(?i)(-b(?:lack)?j(?:ack)?(?: \d+)?|hit|stand)\z
 */}}
 {{$blank := "<:hidden:793052702405427250>"}}
 {{$cards := dict 
@@ -107,6 +107,7 @@
             "Sticky" (sdict "Channel" (str .Channel.ID) "Message" (str $id))
         }}
         {{if not ($embed.Get "description")}}{{dbSet .User.ID "bj" $toset}}{{end}}
+	{{else if reFind `\A(?i)-b(?:lack)?j(?:ack)?` .Message.Content}}usage: `-bj (bet)`
     {{end}}
 {{else}}
     {{$db = sdict $db}}{{$toedit := sdict $db.Sticky}}
@@ -211,5 +212,6 @@
         {{end}}
         {{$stick := sdict $db.Sticky}}{{dbDel .User.ID "bj"}}
         {{editMessage ($stick.Channel|toInt) ($stick.Message|toInt) (cembed $embed)}}
+	{{else if reFind `\A(?i)-b(?:lack)?j(?:ack)?` .Message.Content}}{{sendMessage nil (cembed "title" "Error!" "description" "you already have a ongoing blackjack match! complete that match first" "color" $red)}}
     {{end}}
 {{end}}
