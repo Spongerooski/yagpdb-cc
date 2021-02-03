@@ -1,6 +1,7 @@
 {{/* 
     Trigger Type: regex
     Trigger: \A(?i)(-b(?:lack)?j(?:ack)?(?: \d+)?|hit|stand)\z
+    TY to shadow
 */}}
 {{$blank := "<:hidden:793052702405427250>"}}
 {{$cards := dict 
