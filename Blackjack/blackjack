@@ -1,85 +1,215 @@
-{{/* recommended trigger: regex; trigger: \A(?i)(-b(?:lack)?j(?:ack)? ?(\d+)|hit|stand)\z */}}
-{{$blank :="<:hidden:793052702405427250>"}}
-{{$cards := dict "<:redone:793000301069729822>" 1 "<:redtwo:793000347261468672>" 2 "<:redthree:793000387992354826>" 3 "<:redfour:793000431529492491>" 4 "<:redfive:793000460864716841>" 5 "<:redsix:793000497794646026>" 6 "<:redseven:793000530909069352>" 7 "<:redeigth:793000562496110613>" 8 "<:rednine:793000596730282034>" 9 "<:redten:793000639675498536>" 10 "<:redjoker:793000683506630706>" 11 "<:redqueen:793000947395067904>" 11 "<:redking:793000980546322472>" 11 "<:redbiga:792999968766951424>" (index (cslice 1 11) (randInt 2)) "<:blackone:792998959328133130>" 1 "<:blacktwo:792998991729131540>" 2 "<:blackthree:792999028975337502>" 3 "<:blackfour:792999065252134962>" 4 "<:blackfive:792999102417207338>" 5 "<:blacksix:792999138614706217>" 6 "<:blackseven:792999170566782976>" 7 "<:blackeigth:792999215672066048>" 8 "<:blacknine:792999583126126612>" 9 "<:blackten:792999623140442132>" 10 "<:blackjoker:792999664693411840>" 11 "<:blackking:792999762995052575>" 11 "<:blackqueen:792999713321385994>" 11 "<:blackbiga:792998918743916585>" (index (cslice 1 11) (randInt 2))}}
+{{/* 
+    Trigger Type: regex
+    Trigger: \A(?i)(-b(?:lack)?j(?:ack)? ?(\d+)|hit|stand)\z 
+*/}}
+{{$blank := "<:hidden:793052702405427250>"}}
+{{$cards := dict 
+    "<:redone:793000301069729822>" 1 
+    "<:redtwo:793000347261468672>" 2 
+    "<:redthree:793000387992354826>" 3 
+    "<:redfour:793000431529492491>" 4 
+    "<:redfive:793000460864716841>" 5 
+    "<:redsix:793000497794646026>" 6 
+    "<:redseven:793000530909069352>" 7 
+    "<:redeigth:793000562496110613>" 8 
+    "<:rednine:793000596730282034>" 9 
+    "<:redten:793000639675498536>" 10 
+    "<:redjoker:793000683506630706>" 10 
+    "<:redqueen:793000947395067904>" 10
+    "<:redking:793000980546322472>" 10
+    "<:redbiga:792999968766951424>" (index (cslice 1 11) (randInt 2)) 
+    "<:blackone:792998959328133130>" 1 
+    "<:blacktwo:792998991729131540>" 2 
+    "<:blackthree:792999028975337502>" 3 
+    "<:blackfour:792999065252134962>" 4 
+    "<:blackfive:792999102417207338>" 5 
+    "<:blacksix:792999138614706217>" 6 
+    "<:blackseven:792999170566782976>" 7 
+    "<:blackeigth:792999215672066048>" 8 
+    "<:blacknine:792999583126126612>" 9 
+    "<:blackten:792999623140442132>" 10 
+    "<:blackjoker:792999664693411840>" 10
+    "<:blackking:792999762995052575>" 10
+    "<:blackqueen:792999713321385994>" 10
+    "<:blackbiga:792998918743916585>" (index (cslice 1 11) (randInt 2))
+}}
 {{$yellow := 0xe8ff1c}}{{$green := 0x2eff17}}{{$red := 0xff1717}}
 {{define "randomcard"}}
-{{$cards := .cards}}
-{{$num := 0}}
-{{$random := (randInt (len $cards))}}
-{{range $k, $v := $cards}}
-{{if eq $num $random}}
-{{$.Set "Pick" $k}}{{else}}{{$num = add $num 1}}{{end}}{{end}}{{end}}
+    {{$cards := .cards}}{{$num := 0}}{{$random := (randInt (len $cards))}}
+    {{range $k, $v := $cards}}
+        {{- if eq $num $random}}{{$.Set "Pick" $k}}{{else}}{{$num = add $num 1}}{{end -}}
+    {{end}}
+{{end}}
 {{$db := (dbGet .User.ID "bj").Value}}
 {{if not $db}}
-{{if $find := reFindAllSubmatches `\A(?i)-b(?:lack)?j(?:ack)? ?(\d+)` .Message.Content}}
-{{$pick1 := sdict "cards" $cards}}{{$pick3 := sdict "cards" $cards}}
-{{$pick2 := sdict "cards" $cards}}{{$pick4 := sdict "cards" $cards}}
-{{template "randomcard" $pick1}}{{template "randomcard" $pick2}}
-{{template "randomcard" $pick3}}{{template "randomcard" $pick4}}
-{{$sum1 := (add ($cards.Get $pick1.Pick) ($cards.Get $pick2.Pick))}}
-{{$sum2 := (add ($cards.Get $pick3.Pick) ($cards.Get $pick4.Pick))}}
-{{$bust := (index $find 0 1)}}
-{{$won := true}}
-{{$embed := (sdict "color" 0x00d5ff "title" "blackjack"
-"fields" (cslice (sdict "name" "Your hand" "value" (print $pick1.Pick $pick2.Pick "\nValue: " $sum1) "inline" true)
-(sdict "name" "Dealer hand" "value" (print $blank $pick4.Pick "\nValue:" ($cards.Get $pick4.Pick)) "inline" true)))}}
-{{if and (ge $sum1 21) (le $sum2 21)}}{{$embed.Set "description" (print "playerbust:" (index $find 0 1))}}{{$embed.Set "color" $red}}
-{{else if and (ge $sum2 21) (le $sum1 21)}}{{$embed.Set "description" (print "dealerbust:" $bust)}}{{$embed.Set "color" $green}}
-{{else if and (eq $sum2 21) (eq $sum1 21)}}{{$embed.Set "description" (print "push money back:" $bust)}}{{$embed.Set "color" $yellow}}
-{{else if and (ge $sum2 21) (ge $sum1 21)}}{{$embed.Set "description" (print "push mobey back:" $bust)}}{{$embed.Set "color" $yellow}}
-{{else if eq $sum1 21}}{{$embed.Set "description" (print "player blackjack:" $bust)}}{{$embed.Set "color" $green}}
-{{else if eq $sum2 21}}{{$embed.Set "description" (print "dealer blacjkack:" $bust)}}{{$embed.Set "color" $red}}{{else}}{{$won = false}}{{end}}
-{{if $won}}{{$embed.fields.Set 1 (sdict "name" "Dealer hand" "value" (print $pick3.Pick $pick4.Pick "\nValue:" $sum2) "inline" true)}}{{end}}
-{{$id := sendMessageRetID nil (cembed $embed)}}
-{{$toset := sdict "Playercards" (print $pick1.Pick $pick2.Pick) "Dealercards" (print $blank $pick4.Pick) "Dealeractual" (print $pick3.Pick $pick4.Pick) "Bet" (index $find 0 1) "Dealerfake" ($cards.Get $pick4.Pick) "Hidden" $pick3.Pick "Playerhand" $sum1 "Dealerhand" $sum2 "Sticky" (sdict "Channel" (str .Channel.ID) "Message" (str $id))}}
-{{dbSet .User.ID "bj" $toset}}
-{{if ($embed.Get "description")}}{{dbDel .User.ID "bj"}}{{end}}
-{{end}}
+    {{if $find := reFindAllSubmatches `\A(?i)-b(?:lack)?j(?:ack)?\s+(\d+)` .Message.Content}}
+        {{template "randomcard" ($pick1 := sdict "cards" $cards)}}
+        {{template "randomcard" ($pick2 := sdict "cards" $cards)}}
+        {{template "randomcard" ($pick3 := sdict "cards" $cards)}}
+        {{template "randomcard" ($pick4 := sdict "cards" $cards)}}
+        {{$sum1 := (add ($cards.Get $pick1.Pick) ($cards.Get $pick2.Pick))}}
+        {{$sum2 := (add ($cards.Get $pick3.Pick) ($cards.Get $pick4.Pick))}}
+        {{$bust := (index $find 0 1)}}
+        {{$embed := (sdict "color" 0x00d5ff "title" "BlackJack"
+            "fields" (cslice 
+                (sdict 
+                    "name" "Your Hand" 
+                    "value" (print $pick1.Pick $pick2.Pick "\n__Value:__ " $sum1) 
+                    "inline" true
+                )
+                (sdict 
+                    "name" "Dealer Hand" 
+                    "value" (print 
+                        $blank $pick4.Pick "\n__Value:__ " ($cards.Get $pick4.Pick)
+                    ) 
+                    "inline" true
+                )
+            )
+        )}}
+        {{if and (gt $sum1 21) (lt $sum2 21)}}
+            {{$embed.Set "description" (print "**You Lose:** " (index $find 0 1))}}
+            {{$embed.Set "color" $red}}
+        {{else if and (gt $sum2 21) (lt $sum1 21)}}
+            {{$embed.Set "description" (print "**You Win:** " $bust)}}
+            {{$embed.Set "color" $green}}
+        {{else if and (eq $sum2 21) (eq $sum1 21)}}
+            {{$embed.Set "description" (print "**Tied:** " $bust)}}
+            {{$embed.Set "color" $yellow}}
+        {{else if eq $sum1 21}}
+            {{$embed.Set "description" (print "**You Win:** " $bust)}}
+            {{$embed.Set "color" $green}}
+        {{else if eq $sum2 21}}
+            {{$embed.Set "description" (print "**You Lose:** " $bust)}}
+            {{$embed.Set "color" $red}}
+        {{else if and (gt $sum1 21) (gt $sum2 21)}}
+            {{$embed.Set "description" (print "**You Lose:** " $bust)}}
+            {{$embed.Set "color" $red}}
+        {{end}}
+        {{if ($embed.Get "description")}}
+            {{$embed.fields.Set 1 (sdict
+                "name" "Dealer Hand"
+                "value" (print
+                    $pick3.Pick $pick4.Pick "\n__Value:__ " $sum2
+                )
+                "inline" true
+            )}}
+        {{end}}
+        {{$id := sendMessageRetID nil (cembed $embed)}}
+        {{$toset := sdict 
+            "Playercards" (print $pick1.Pick $pick2.Pick) 
+            "Dealercards" (print $blank $pick4.Pick) 
+            "Dealeractual" (print $pick3.Pick $pick4.Pick) 
+            "Bet" (index $find 0 1) 
+            "Dealerfake" ($cards.Get $pick4.Pick) 
+            "Hidden" $pick3.Pick 
+            "Playerhand" $sum1 
+            "Dealerhand" $sum2 
+            "Sticky" (sdict "Channel" (str .Channel.ID) "Message" (str $id))
+        }}
+        {{if not ($embed.Get "description")}}{{dbSet .User.ID "bj" $toset}}{{end}}
+    {{end}}
 {{else}}
-{{$db = sdict $db}}
-{{$toedit := sdict $db.Sticky}}
-{{$embed := index (getMessage ($toedit.Channel|toInt) ($toedit.Message|toInt)).Embeds 0|structToSdict}}
-{{$embed.Set "Fields" ((cslice).AppendSlice $embed.Fields)}}
-{{if eq (lower .Message.Content) "hit"}}
-{{$playerpick := sdict "cards" $cards}}{{$dealerpick := sdict "cards" $cards}}
-{{template "randomcard" $playerpick}}{{template "randomcard" $dealerpick}}
-{{$playersum := (add $db.Playerhand ($cards.Get $playerpick.Pick))}}
-{{$dealersum := (add $db.Dealerhand ($cards.Get $dealerpick.Pick))}}
-{{$dealershow := (add $db.Dealerfake ($cards.Get $dealerpick.Pick))}}
-{{$playerhand := (print $db.Playercards $playerpick.Pick)}}
-{{$dealeractual := (print $db.Dealeractual $dealerpick.Pick)}}
-{{$dealerhand := (print $db.Dealercards $dealerpick.Pick)}}
-{{$win := 1}}
-{{if and (gt $playersum 21) (gt $dealersum 21)}}{{$embed.Set "description" (print "push money back:" $db.Bet)}}{{$embed.Set "color" $yellow}}
-{{else if and (gt $playersum 21) (lt $dealersum 21)}}{{$embed.Set "description" (print "playerbust: " $db.Bet)}}{{$embed.Set "color" $red}}
-{{else if and (gt $dealersum 21) (lt $playersum 21)}}{{$embed.Set "description" (print "dealerbust: " $db.Bet)}}{{$embed.Set "color" $green}}
-{{else if and (eq $playersum 21) (eq $dealersum 21)}}{{$embed.Set "description" (print "push money back: " $db.Bet)}}{{$embed.Set "color" $yellow}}
-{{else if eq $playersum 21}}{{$embed.Set "description" (print "player blackjack: " $db.Bet)}}{{$embed.Set "color" $green}}
-{{else if eq $dealersum 21}}{{$embed.Set "description" (print "dealer blackjack: " $db.Bet)}}{{$embed.Set "color" $red}}
-{{else}}{{$win = 0}}{{$embed.Fields.Set 0 (sdict "name" "Your hand" "value" (print $playerhand "\nValue:" $playersum) "inline" true)}}
-{{$embed.Fields.Set 1 (sdict "name" "Dealer hand" "value" (print $dealerhand "\nValue:" $dealershow) "inline" true)}}
-{{$db.Set "Dealeractual" $dealeractual}}{{$db.Set "Playercards" $playerhand}}{{$db.Set "Dealercards" $dealerhand}}{{$db.Set "Playerhand" $playersum}}{{$db.Set "Dealerhand" $dealersum}}{{$db.Set "Dealerfake" $dealershow}}
-{{dbSet .User.ID "bj" $db}}
-{{end}}
-{{if not $win}}
-{{editMessage ($toedit.Channel|toInt) ($toedit.Message|toInt) (cembed $embed)}}
-{{else}}{{$embed.Fields.Set 0 (sdict "name" "Your hand" "value" (print $playerhand "\nValue:" $playersum) "inline" true)}}{{$embed.Fields.Set 1 (sdict "name" "Dealer hand" "value" (print $dealeractual "\nValue:" $dealersum) "inline" true)}}
-{{editMessage ($toedit.Channel|toInt) ($toedit.Message|toInt) (cembed $embed)}}{{dbDel .User.ID "bj"}}
-{{end}}
-{{else if eq (lower .Message.Content) "stand"}}
-{{$pl := $db.Playerhand}}{{$dl := $db.Dealerhand}}
-{{$embed.Fields.Set 0 (sdict "name" "Your hand" "value" (print $db.Playercards "\nValue:" $db.Playerhand) "inline" true)}}
-{{$embed.Fields.Set 1 (sdict "name" "Dealer hand" "value" (print $db.Dealeractual "\nValue:" $db.Dealerhand) "inline" true)}}
-{{if lt $pl $dl}}
-{{$embed.Set "description" (print "playerbust:" $db.Bet)}}
-{{$embed.Set "color" $red}}
-{{else if lt $dl $pl}}
-{{$embed.Set "description" (print "dealerbust:" $db.Bet)}}
-{{$embed.Set "color" $green}}
-{{else if eq $dl $pl}}
-{{$embed.Set "description" (print "push money back:" $db.Bet)}}
-{{$embed.Set "color" $yellow}}
-{{end}}{{$stick := sdict $db.Sticky}}{{dbDel .User.ID "bj"}}
-{{editMessage ($stick.Channel|toInt) ($stick.Message|toInt) (cembed $embed)}}
-{{end}}
+    {{$db = sdict $db}}{{$toedit := sdict $db.Sticky}}
+    {{$embed := index (getMessage 
+        ($toedit.Channel|toInt) 
+        ($toedit.Message|toInt)
+    ).Embeds 0|structToSdict}}
+    {{$embed.Set "Fields" ((cslice).AppendSlice $embed.Fields)}}
+    {{if eq (lower .Message.Content) "hit"}}
+        {{$playerpick := sdict "cards" $cards}}{{$dealerpick := sdict "cards" $cards}}
+        {{template "randomcard" $playerpick}}{{template "randomcard" $dealerpick}}
+        {{$playersum := (add $db.Playerhand ($cards.Get $playerpick.Pick))}}
+        {{$dealersum := (add $db.Dealerhand ($cards.Get $dealerpick.Pick))}}
+        {{$dealershow := (add $db.Dealerfake ($cards.Get $dealerpick.Pick))}}
+        {{$playerhand := (print $db.Playercards $playerpick.Pick)}}
+        {{$dealeractual := (print $db.Dealeractual $dealerpick.Pick)}}
+        {{$dealerhand := (print $db.Dealercards $dealerpick.Pick)}}
+        {{$win := 1}}
+        {{if and (gt $playersum 21) (lt $dealersum 21)}}
+            {{$embed.Set "description" (print "**You Lose:** " $db.Bet)}}
+            {{$embed.Set "color" $red}}
+        {{else if and (gt $dealersum 21) (lt $playersum 21)}}
+            {{$embed.Set "description" (print "**You Win:** " $db.Bet)}}
+            {{$embed.Set "color" $green}}
+        {{else if eq $playersum 21}}
+            {{$embed.Set "description" (print "**You Win:** " $db.Bet)}}
+            {{$embed.Set "color" $green}}
+        {{else if eq $dealersum 21}}
+            {{$embed.Set "description" (print "**You Lose:** " $db.Bet)}}
+            {{$embed.Set "color" $red}}
+        {{else if and (eq $playersum 21) (eq $dealersum 21)}}
+            {{$embed.Set "description" (print "**Tied:** " $db.Bet)}}
+            {{$embed.Set "color" $yellow}}
+        {{else if and (gt $playersum 21) (gt $dealersum 21)}}
+            {{$embed.Set "description" (print "**You Lose:** " $db.Bet)}}
+            {{$embed.Set "color" $red}}
+        {{else}}
+            {{$win = 0}}
+            {{$embed.Fields.Set 0 (sdict 
+                "name" "Your Hand" 
+                "value" (print $playerhand "\n__Value:__ " $playersum) 
+                "inline" true
+            )}}
+            {{$embed.Fields.Set 1 (sdict 
+                "name" "Dealer Hand" 
+                "value" (print $dealerhand "\n__Value:__ " $dealershow) 
+                "inline" true
+            )}}
+            {{$db.Set "Dealeractual" $dealeractual}}
+            {{$db.Set "Playercards" $playerhand}}
+            {{$db.Set "Dealercards" $dealerhand}}
+            {{$db.Set "Playerhand" $playersum}}
+            {{$db.Set "Dealerhand" $dealersum}}
+            {{$db.Set "Dealerfake" $dealershow}}
+            {{dbSet .User.ID "bj" $db}}
+        {{end}}
+        {{if not $win}}
+            {{editMessage 
+                ($toedit.Channel|toInt) 
+                ($toedit.Message|toInt) 
+                (cembed $embed)
+            }}
+        {{else}}
+            {{$embed.Fields.Set 0 (sdict 
+                "name" "Your Hand" 
+                "value" (print $playerhand "\n__Value:__ " $playersum) 
+                "inline" true
+            )}}
+            {{$embed.Fields.Set 1 (sdict 
+                "name" "Dealer Hand" 
+                "value" (print $dealeractual "\n__Value:__ " $dealersum) 
+                "inline" true
+            )}}
+            {{editMessage 
+                ($toedit.Channel|toInt) 
+                ($toedit.Message|toInt) 
+                (cembed $embed)
+            }}
+            {{dbDel .User.ID "bj"}}
+        {{end}}
+    {{else if eq (lower .Message.Content) "stand"}}
+        {{$pl := $db.Playerhand}}{{$dl := $db.Dealerhand}}
+        {{$embed.Fields.Set 0 (sdict 
+            "name" "Your Hand" 
+            "value" (print $db.Playercards "\n__Value:__ " $db.Playerhand) 
+            "inline" true
+        )}}
+        {{$embed.Fields.Set 1 (sdict 
+            "name" "Dealer hand" 
+            "value" (print $db.Dealeractual "\n__Value:__ " $db.Dealerhand) 
+            "inline" true
+        )}}
+        {{if lt $pl $dl}}
+            {{$embed.Set "description" (print "**You Lose:** " $db.Bet)}}
+            {{$embed.Set "color" $red}}
+        {{else if lt $dl $pl}}
+            {{$embed.Set "description" (print "**You Win:** " $db.Bet)}}
+            {{$embed.Set "color" $green}}
+        {{else if eq $dl $pl}}
+            {{$embed.Set "description" (print "**Tied:** " $db.Bet)}}
+            {{$embed.Set "color" $yellow}}
+        {{end}}
+        {{$stick := sdict $db.Sticky}}{{dbDel .User.ID "bj"}}
+        {{editMessage ($stick.Channel|toInt) ($stick.Message|toInt) (cembed $embed)}}
+    {{end}}
 {{end}}
